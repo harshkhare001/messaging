@@ -1,47 +1,43 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
-const { LocalStorage } = require('node-localstorage');
-var localStorage = require('localstorage').LocalStorage
-    localStorage = new LocalStorage('./scratch');
 
 const app = express();
 
 
 app.use(bodyParser.urlencoded({extended:false}));
 
-app.use('/login',(req,res,next)=>{
-    //console.log("in the middle");
-    res.send('<form action="/" method="POST"><label>User:</label><input type="text" name="title"><button type="submit">Login</button></form>')
-    //next();
-})
+app.get('/login',(req,res)=>
+{
+    res.send(`<form onsubmit="localStorage.setItem('username', document.getElementById('username').value)" action="/" method="POST">
+	<input id="username" type="text" name"title">
+	<button type="submit">Login</button>
+    </form>`)
+});
 
-app.use('/',(req,res,next)=>{
-    
-    var name = req.body.title;
-    console.log(name);
-    //console.log(name);
-    localStorage.setItem('username',name.toString());
-    //console.log(localStorage.getItem('username'));
-    const data = fs.readFileSync('message.txt')
-    res.write(data);
-    res.write('<form action="/message" method="POST"><input type="text" name="message"><button type="submit">Send</button></form>')
+app.get('/',(req,res)=>{
+    fs.readFile('message.txt',(err,data)=>{
+        if(err){
+            console.log(err);
+            data = 'No chats Exist';
+        }
+        else if(data == ''){
+            data ='No chats exist';
+        }
+        res.send(`'${data}'<br><form action="/" method="POST" onSubmit="document.getElementById('username').value= localStorage.getItem('username')">
+        <input type="text" name="message" id="message"></input>
+        <input type="hidden" name="username" id="username"></input>
+        <button type="submit">Send</button>
+        </form>`);
+    });
+});
 
-})
-
-app.use('/message',(req,res,next)=>{
-    //const message = req.body.message;
-    console.log(req.body);
-    const savemsg = message;
-    console.log(savemsg);
-    fs.appendFileSync('message.txt',savemsg);
-    res.redirect('/');
-})
-
-
-// app.use('/',(req,res,next)=>{
-//     //console.log('in another middleware');
-//     res.send('<h1>Hello World from Express.Js<h1>')
-// })
+app.post('/',(req,res)=>{
+    console.log(req.body.message);
+    console.log(req.body.username);
+    fs.writeFile('message.txt',`${req.body.username} : ${req.body.message}`,{flag:'a'},(err)=>{
+        err? console.log(err) : res.redirect('/');
+    });
+});
 
 app.listen(4000);
