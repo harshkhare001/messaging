@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({extended:false}));
 
 app.get('/login',(req,res)=>
 {
-    res.send(`<form onsubmit="localStorage.setItem('username', document.getElementById('username').value)" action="/" method="POST">
+    res.send(`<form onsubmit="localStorage.setItem('username', document.getElementById('username').value)" action="/" method="GET">
 	<input id="username" type="text" name"title">
 	<button type="submit">Login</button>
     </form>`)
